@@ -1,0 +1,31 @@
+/*
+ * PUBLIC:
+ *   - count is the on-chain counter value.
+ *   - lastCommitment is a public commitment to the latest private nonce.
+ *
+ * PRIVATE:
+ *   - privateNonce is supplied by the caller as witness data and is never
+ *     written to the ledger.
+ *
+ * PROVES:
+ *   - every successful call advances the counter by exactly one;
+ *   - lastCommitment was derived from the caller's private nonce.
+ */
+pragma language_version >= 0.23;
+
+import CompactStandardLibrary;
+
+export ledger count: Counter;
+export ledger lastCommitment: Bytes<32>;
+
+witness privateNonce(): Bytes<32>;
+
+export circuit increment(): [] {
+    const nonce = privateNonce();
+    const commitment = persistentHash<Bytes<32>>(nonce);
+
+    count.increment(1);
+
+    // Deliberate disclosure: publish only the one-way commitment, never nonce.
+    lastCommitment = disclose(commitment);
+}
