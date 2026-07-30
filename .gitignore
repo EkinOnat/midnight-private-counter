@@ -1,0 +1,21 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+*.log
+
+# Local wallet material and deployment state
+.midnight-state.json
+.midnight-wallet-state/
+*-state/
+midnight-level-db/
+
+# The separate Hello World proof-of-setup scaffold
+mn-demo/
+
+# Local editor/OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
