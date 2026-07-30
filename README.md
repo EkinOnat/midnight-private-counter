@@ -207,11 +207,13 @@ vercel.json                         Production build, routing, and asset headers
 
 [Watch the Level 2 demo on YouTube](https://youtu.be/uSjGRCvbhCM).
 
-The recording shows Lace connecting to the live Preprod frontend, a successful
-`increment()` circuit call, the local proof/submission loading state, the
-updated public counter, and wallet disconnection. It also demonstrates the
-privacy boundary: the application proves knowledge of a fresh private nonce
-without displaying or publishing that nonce.
+The recording shows an active Lace connection on the live Preprod frontend, a
+successful `increment()` circuit call, the local proof/submission loading
+state, the public counter advancing from 1 to 2, and the finalized block and
+transaction result. It also demonstrates the privacy boundary: the application
+proves knowledge of a fresh private nonce without displaying or publishing
+that nonce. Explicit disconnect cleanup is implemented in the wallet control
+and covered by the frontend test suite.
 
 ## Screenshots
 
