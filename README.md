@@ -69,12 +69,11 @@ to confirm the currently supported versions before upgrading.
 
 ## Setup
 
-Clone the repository (replace the repository name if you publish it under a
-different name):
+Clone the repository:
 
 ```bash
-git clone https://github.com/EkinOnat/REPOSITORY_NAME.git
-cd REPOSITORY_NAME
+git clone https://github.com/EkinOnat/midnight-private-counter.git
+cd midnight-private-counter
 npm install
 ```
 
