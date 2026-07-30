@@ -3,6 +3,8 @@ dist/
 coverage/
 .env
 .env.*
+!.env.example
+!.env.production
 *.log
 
 # Local wallet material and deployment state
@@ -10,6 +12,8 @@ coverage/
 .midnight-wallet-state/
 *-state/
 midnight-level-db/
+public/keys/
+public/zkir/
 
 # The separate Hello World proof-of-setup scaffold
 mn-demo/

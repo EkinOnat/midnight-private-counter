@@ -1,0 +1,8 @@
+{
+  "name": "Midnight Private Counter",
+  "short_name": "Private Counter",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#071513",
+  "theme_color": "#071513"
+}
