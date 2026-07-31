@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "A privacy-preserving Counter dApp for Level 2 of the Midnight Builder Challenge.",
+  "description": "A privacy-preserving Counter dApp for Level 3 of the Midnight Builder Challenge.",
   "scripts": {
-    "compile": "compact compile contracts/counter.compact managed/counter",
+    "compile": "node scripts/compile-contract.mjs",
     "test": "vitest run",
     "test:contract": "vitest run tests/counter.test.ts",
     "test:frontend": "vitest run tests/frontend",
