@@ -2,6 +2,7 @@
 
 import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { WalletConnect } from '../../src/components/WalletConnect.js';
 import type {
@@ -29,6 +30,44 @@ function walletState(
 afterEach(cleanup);
 
 describe('WalletConnect', () => {
+  it('calls connect from the disconnected state', async () => {
+    const wallet = walletState('disconnected');
+
+    render(<WalletConnect wallet={wallet} />);
+    await userEvent.click(
+      screen.getByRole('button', { name: /connect lace/i }),
+    );
+
+    expect(wallet.connect).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls disconnect from the connected state', async () => {
+    const wallet = walletState('connected', {
+      address: 'mn_addr_preprod1public',
+      walletName: 'Lace',
+      networkId: 'preprod',
+    });
+
+    render(<WalletConnect wallet={wallet} />);
+    await userEvent.click(
+      screen.getByRole('button', { name: /disconnect/i }),
+    );
+
+    expect(wallet.disconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables the busy connect button and suppresses duplicate connection requests', async () => {
+    const wallet = walletState('connecting');
+
+    render(<WalletConnect wallet={wallet} />);
+    const button = screen.getByRole('button', { name: /waiting for lace/i });
+
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    await userEvent.click(button);
+    expect(wallet.connect).not.toHaveBeenCalled();
+  });
+
   it('announces wallet progress and restores keyboard focus after connect and disconnect', () => {
     const { rerender } = render(
       <WalletConnect wallet={walletState('connecting')} />,

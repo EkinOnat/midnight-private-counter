@@ -1,10 +1,11 @@
 import { spawnSync } from 'node:child_process';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const COMPILER_VERSION = '0.31.1';
 const CONTRACT_SOURCE = 'contracts/counter.compact';
 const OUTPUT_DIRECTORY = 'managed/counter';
-const projectRoot = resolve(import.meta.dirname, '..');
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 function toWslPath(windowsPath) {
   const normalized = windowsPath.replaceAll('\\', '/');

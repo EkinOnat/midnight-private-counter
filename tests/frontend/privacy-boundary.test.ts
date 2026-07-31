@@ -14,6 +14,7 @@ const browserSource = [
   'src/components/WalletConnect.tsx',
   'src/hooks/useMidnight.ts',
   'src/lib/counter-client.ts',
+  'src/lib/counter-errors.ts',
   'src/lib/ephemeral-private-state.ts',
   'src/witnesses.ts',
 ]

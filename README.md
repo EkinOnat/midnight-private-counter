@@ -285,6 +285,10 @@ and covered by the frontend test suite.
 
 ![Midnight Private Counter Level 2 frontend](screenshots/03-level2-frontend.png)
 
+### Level 3 test suite
+
+![Vitest output showing 32 passing tests](screenshots/04-level3-test-output.png)
+
 ## Author
 
 [EkinOnat on GitHub](https://github.com/EkinOnat)

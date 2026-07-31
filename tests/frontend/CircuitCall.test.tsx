@@ -234,6 +234,61 @@ describe('CircuitCall', () => {
     expect(screen.queryByText(/could not read the public counter/i)).not.toBeInTheDocument();
   });
 
+  it('handles missing public state on initial load and retries successfully', async () => {
+    clientMocks.queryPublicCounterState
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        ...publicState,
+        count: '7',
+      });
+
+    render(<CircuitCall connectedApi={connectedApi} />);
+
+    expect(await screen.findByText('—')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      /verified contract has no readable public state on preprod/i,
+    );
+
+    await userEvent.click(
+      screen.getByRole('button', { name: /refresh public count/i }),
+    );
+
+    await waitFor(() =>
+      expect(clientMocks.queryPublicCounterState).toHaveBeenCalledTimes(2),
+    );
+    expect(await screen.findByText('7')).toBeInTheDocument();
+  });
+
+  it('prevents concurrent public refreshes while a read is pending', async () => {
+    let finishRefresh!: (value: typeof publicState) => void;
+    clientMocks.queryPublicCounterState
+      .mockResolvedValueOnce(null)
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finishRefresh = resolve;
+          }),
+      );
+
+    render(<CircuitCall connectedApi={connectedApi} />);
+
+    const refreshButton = await screen.findByRole('button', {
+      name: /refresh public count/i,
+    });
+    act(() => {
+      refreshButton.click();
+      refreshButton.click();
+      refreshButton.click();
+    });
+
+    expect(clientMocks.queryPublicCounterState).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      finishRefresh(publicState);
+    });
+    expect(await screen.findByText('12')).toBeInTheDocument();
+  });
+
   it('keeps a finalized transaction successful when its follow-up read fails', async () => {
     clientMocks.queryPublicCounterState
       .mockResolvedValueOnce(publicState)
