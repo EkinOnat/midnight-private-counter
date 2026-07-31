@@ -27,7 +27,17 @@ import {
 } from '../../managed/counter/contract/index.js';
 import { counterWitnesses, type CounterPrivateState } from '../witnesses.js';
 import { MIDNIGHT_CONFIG } from '../config.js';
+import {
+  createCounterClientError as publicError,
+  isCounterClientError,
+  safeCounterErrorText as safeErrorText,
+} from './counter-errors.js';
 import { ephemeralPrivateStateProvider } from './ephemeral-private-state.js';
+
+export {
+  CounterClientError,
+  type CounterClientErrorCode,
+} from './counter-errors.js';
 
 const PRIVATE_STATE_ID = 'privateCounterState';
 type CounterCircuitKey = 'increment';
@@ -57,49 +67,12 @@ export type IncrementPhase =
   | 'confirming'
   | 'refreshing';
 
-export type CounterClientErrorCode =
-  | 'wallet_connection_lost'
-  | 'network_mismatch'
-  | 'local_proof_server_required'
-  | 'proof_server_unreachable'
-  | 'proof_generation_failed'
-  | 'wallet_transaction_cancelled'
-  | 'wallet_balance_failed'
-  | 'transaction_submission_failed'
-  | 'transaction_confirmation_failed'
-  | 'contract_not_found'
-  | 'contract_read_failed'
-  | 'contract_initialization_failed'
-  | 'zk_assets_unavailable'
-  | 'private_input_generation_failed';
-
-export class CounterClientError extends Error {
-  readonly code: CounterClientErrorCode;
-
-  constructor(code: CounterClientErrorCode) {
-    // Error text deliberately contains only a public code. Provider errors can
-    // carry transaction internals and must not cross the browser client boundary.
-    super(code);
-    this.name = 'CounterClientError';
-    this.code = code;
-  }
-}
-
 export interface IncrementOptions {
   onProgress?(phase: IncrementPhase): void;
 }
 
 const normalizeNetwork = (networkId: string): string =>
   networkId.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-const publicError = (code: CounterClientErrorCode): CounterClientError =>
-  new CounterClientError(code);
-
-const isCounterClientError = (cause: unknown): cause is CounterClientError =>
-  cause instanceof CounterClientError;
-
-const safeErrorText = (cause: unknown): string =>
-  cause instanceof Error ? `${cause.name} ${cause.message}`.toLowerCase() : '';
 
 const isWalletCancellation = (cause: unknown): boolean =>
   /reject|declin|denied|cancel/.test(safeErrorText(cause));

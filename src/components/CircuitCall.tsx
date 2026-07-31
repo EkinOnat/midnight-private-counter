@@ -3,10 +3,13 @@ import type { ConnectedAPI } from '@midnight-ntwrk/dapp-connector-api';
 import {
   incrementCounter,
   queryPublicCounterState,
-  type CounterClientErrorCode,
   type IncrementPhase,
   type IncrementResult,
 } from '../lib/counter-client.js';
+import {
+  counterClientErrorCode,
+  friendlyCounterClientError,
+} from '../lib/counter-errors.js';
 
 interface CircuitCallProps {
   connectedApi: ConnectedAPI | null;
@@ -53,68 +56,6 @@ const finalizedReadErrorCopy =
 
 const uncertainReadErrorCopy =
   'The displayed count may be stale while Lace determines finalization. You may refresh it for visibility, but do not submit again until Lace shows a final outcome and you reload this dApp.';
-
-function errorCode(cause: unknown): CounterClientErrorCode | null {
-  if (!cause || typeof cause !== 'object' || !('code' in cause)) return null;
-  const code = (cause as { code?: unknown }).code;
-  return typeof code === 'string' ? (code as CounterClientErrorCode) : null;
-}
-
-function friendlyCircuitError(cause: unknown): string {
-  switch (errorCode(cause)) {
-    case 'wallet_connection_lost':
-      return 'Lace stopped responding. Reconnect the wallet, then try again.';
-    case 'network_mismatch':
-      return 'Lace is no longer on Midnight Preprod. Disconnect, switch networks, and reconnect.';
-    case 'local_proof_server_required':
-      return 'This dApp proves locally only. Start proof server 8.1.0 at http://127.0.0.1:6300, then retry.';
-    case 'proof_server_unreachable':
-      return 'The local proof server did not respond. Confirm proof server 8.1.0 is running on port 6300, then retry.';
-    case 'proof_generation_failed':
-      return 'Proof generation failed before submission. Restart the local proof server, keep this tab open, and retry.';
-    case 'wallet_transaction_cancelled':
-      return 'Transaction preparation was cancelled in Lace. Nothing was submitted; retry when ready.';
-    case 'wallet_balance_failed':
-      return 'Lace could not prepare the transaction. Unlock Lace and confirm the wallet has generated tDUST, then retry.';
-    case 'transaction_submission_failed':
-      return 'Lace could not submit the proved transaction. Confirm Lace is connected to Preprod, then retry.';
-    case 'transaction_confirmation_failed':
-      return 'The transaction was submitted, but finalization could not be confirmed. Do not resubmit. Check Lace activity; once Lace shows finalized or discarded, reload this dApp.';
-    case 'contract_not_found':
-      return 'The Counter contract was not found at the verified Preprod address. Check the network and reload the page.';
-    case 'contract_read_failed':
-      return 'The verified contract could not be read from the Preprod indexer. Check your connection and retry.';
-    case 'contract_initialization_failed':
-      return 'The Counter contract could not be prepared. Reload the dApp; if this continues, verify Preprod and the local proof assets.';
-    case 'zk_assets_unavailable':
-      return 'The local proof assets could not be loaded. Reload the dApp and confirm the production build includes the Counter ZK assets.';
-    case 'private_input_generation_failed':
-      return 'This browser could not securely generate a private input. Use an up-to-date secure browser and retry.';
-  }
-
-  // Keep compatibility with mocked/older clients while returning only static,
-  // actionable copy. The raw provider message is never rendered.
-  const message = cause instanceof Error ? cause.message.toLowerCase() : '';
-  if (message.includes('network_mismatch')) {
-    return 'Lace is no longer on Midnight Preprod. Disconnect, switch networks, and reconnect.';
-  }
-  if (message.includes('local_proof_server_required')) {
-    return 'This dApp proves locally only. Start proof server 8.1.0 at http://127.0.0.1:6300, then retry.';
-  }
-  if (/proof|prover|6300|fetch/.test(message)) {
-    return 'Proof generation failed before submission. Confirm proof server 8.1.0 is running on port 6300, then retry.';
-  }
-  if (/reject|declin|denied|cancel/.test(message)) {
-    return 'Transaction preparation was cancelled in Lace. Nothing was submitted; retry when ready.';
-  }
-  if (/balance|dust|fund/.test(message)) {
-    return 'Lace could not prepare the transaction. Unlock Lace and confirm the wallet has generated tDUST, then retry.';
-  }
-  if (/submit|transaction|mempool/.test(message)) {
-    return 'The proved transaction could not be submitted. Confirm Lace is connected to Preprod, then retry.';
-  }
-  return 'The private call could not be completed. Check Lace, Preprod, and the local proof server, then retry.';
-}
 
 export function CircuitCall({ connectedApi }: CircuitCallProps) {
   const [status, setStatus] = useState<CallStatus>('idle');
@@ -236,7 +177,7 @@ export function CircuitCall({ connectedApi }: CircuitCallProps) {
       setStatus('success');
     } catch (cause: unknown) {
       if (activeOperation !== operationId.current) return;
-      if (errorCode(cause) === 'transaction_confirmation_failed') {
+      if (counterClientErrorCode(cause) === 'transaction_confirmation_failed') {
         setSubmissionUncertain(true);
         setPublicCount(null);
         setReadStatus('error');
@@ -244,7 +185,7 @@ export function CircuitCall({ connectedApi }: CircuitCallProps) {
         setRequiresReadRecovery(true);
       }
       setStatus('error');
-      setError(friendlyCircuitError(cause));
+      setError(friendlyCounterClientError(cause));
       if (readStatus === 'loading') void refreshCount();
     } finally {
       operationPending.current = false;
