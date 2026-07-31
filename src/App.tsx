@@ -21,7 +21,7 @@ export default function App() {
 
         <div className="hero-grid">
           <div>
-            <p className="eyebrow">Midnight Builder Challenge / Level 2</p>
+            <p className="eyebrow">Midnight Builder Challenge / Level 3</p>
             <h1>
               Participation,
               <br />
@@ -30,8 +30,8 @@ export default function App() {
           </div>
           <div className="hero-aside">
             <p>
-              Increment a public counter while your private input stays on your device. Midnight
-              verifies the proof—not the secret.
+              Increment a public counter while a one-call private input stays local. Midnight
+              verifies the proof—not the raw input.
             </p>
             <div className="contract-chip">
               <span>Verified contract</span>
@@ -54,15 +54,20 @@ export default function App() {
         <dl>
           <div>
             <dt>Public</dt>
-            <dd>Counter, commitment, and transaction metadata</dd>
+            <dd>Counter, one-way commitment, transaction ID, and block height</dd>
           </div>
           <div>
             <dt>Private</dt>
-            <dd>A fresh 32-byte input generated for one call</dd>
+            <dd>
+              A fresh 32-byte input generated for one call, used only in volatile local state, and
+              never displayed or persisted by this dApp
+            </dd>
           </div>
           <div>
-            <dt>Proven</dt>
-            <dd>The commitment and exact one-step transition are valid</dd>
+            <dt>Proved without revealing</dt>
+            <dd>
+              The commitment derives from that input and the public counter advances exactly once
+            </dd>
           </div>
         </dl>
       </section>

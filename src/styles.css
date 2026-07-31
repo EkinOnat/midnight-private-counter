@@ -17,13 +17,13 @@
 }
 
 html {
-  min-width: 320px;
+  min-width: 0;
   background: var(--ink);
 }
 
 body {
   margin: 0;
-  min-width: 320px;
+  min-width: 0;
   min-height: 100vh;
   background:
     radial-gradient(circle at 79% 2%, rgba(72, 140, 111, 0.24), transparent 30rem),
@@ -52,8 +52,15 @@ a {
 
 main {
   width: min(1440px, 100%);
+  min-width: 0;
   margin: 0 auto;
   padding: 0 clamp(1.25rem, 4vw, 4.5rem);
+}
+
+.hero-grid > *,
+.workspace > *,
+.privacy-strip > * {
+  min-width: 0;
 }
 
 .hero {
@@ -206,6 +213,7 @@ h1 em {
 }
 
 .status-dot {
+  flex: 0 0 auto;
   width: 0.58rem;
   height: 0.58rem;
   border: 1px solid var(--muted);
@@ -228,6 +236,18 @@ h1 em {
   background: #ff987f;
 }
 
+.wallet-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--muted);
+  font-family: "DM Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
 h2 {
   margin-bottom: 1rem;
   font-size: clamp(2rem, 4vw, 3.4rem);
@@ -244,6 +264,7 @@ h2 {
 }
 
 .button {
+  max-width: 100%;
   min-height: 3.4rem;
   padding: 0.85rem 1.2rem;
   display: inline-flex;
@@ -297,6 +318,7 @@ a:focus-visible {
 }
 
 .spinner {
+  flex: 0 0 auto;
   width: 0.9rem;
   height: 0.9rem;
   border: 2px solid rgba(7, 21, 19, 0.25);
@@ -307,6 +329,12 @@ a:focus-visible {
 
 .spinner--dark {
   color: var(--ink);
+}
+
+.spinner--light {
+  border-color: rgba(231, 239, 233, 0.24);
+  border-top-color: var(--mint);
+  color: var(--mint);
 }
 
 .wallet-details {
@@ -334,6 +362,7 @@ a:focus-visible {
 .wallet-details dd {
   margin: 0;
   min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 0.82rem;
 }
 
@@ -348,9 +377,11 @@ a:focus-visible {
 .privacy-label {
   display: inline-flex;
   gap: 0.45rem;
+  max-width: 100%;
   color: var(--acid);
   font-family: "DM Mono", monospace;
   font-size: 0.66rem;
+  line-height: 1.5;
 }
 
 .counter-readout {
@@ -362,6 +393,9 @@ a:focus-visible {
 }
 
 .counter-readout strong {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   color: var(--acid);
   font-family: "DM Mono", monospace;
   font-size: clamp(3.5rem, 7vw, 6.5rem);
@@ -381,9 +415,73 @@ a:focus-visible {
   color: #ffad99;
 }
 
+.inline-message--pending {
+  color: #c3d0ca;
+}
+
+.read-status {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.read-error {
+  margin-top: 1.25rem;
+  padding: 0.9rem 1rem 1rem;
+  border-left: 2px solid #ff987f;
+  background: rgba(255, 152, 127, 0.055);
+}
+
+.read-error .inline-message {
+  margin-top: 0;
+}
+
+.uncertain-submission {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 173, 153, 0.45);
+  background: rgba(255, 152, 127, 0.055);
+}
+
+.uncertain-submission h3 {
+  margin: 0 0 0.65rem;
+  color: #ffad99;
+  font-size: 0.82rem;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.uncertain-submission p {
+  margin-bottom: 0;
+  color: #c3d0ca;
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.button--small {
+  min-height: 2.65rem;
+  margin-top: 0.85rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.68rem;
+}
+
+.async-outcome:focus {
+  outline: 2px solid var(--acid);
+  outline-offset: 4px;
+}
+
 .transaction-result {
   margin-top: 1.5rem;
   border-top: 1px solid var(--line);
+}
+
+.result-heading {
+  margin: 1rem 0 0;
+  color: var(--acid);
+  font-family: "DM Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .transaction-result > div {
@@ -419,7 +517,7 @@ a:focus-visible {
 
 .privacy-strip dl > div {
   display: grid;
-  grid-template-columns: 6rem 1fr;
+  grid-template-columns: minmax(8.5rem, 0.38fr) minmax(0, 1fr);
   gap: 2rem;
   padding: 1.4rem 0;
   border-bottom: 1px solid var(--line);
@@ -510,10 +608,11 @@ footer a {
 
   .topline {
     align-items: flex-start;
+    flex-wrap: wrap;
   }
 
   h1 {
-    font-size: clamp(3rem, 16vw, 4.7rem);
+    font-size: clamp(2.25rem, 13vw, 4.7rem);
   }
 
   .section-heading {
@@ -530,6 +629,16 @@ footer a {
   .privacy-strip dl > div {
     grid-template-columns: 1fr;
     gap: 0.45rem;
+  }
+
+  .button {
+    width: 100%;
+  }
+
+  footer {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
   }
 }
 

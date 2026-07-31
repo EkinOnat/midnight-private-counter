@@ -25,12 +25,16 @@ function connectedApi(networkId = 'preprod'): ConnectedAPI {
   } as unknown as ConnectedAPI;
 }
 
-function installLace(api: ConnectedAPI, connectError?: Error): InitialAPI {
+function installLace(
+  api: ConnectedAPI,
+  connectError?: Error,
+  apiVersion = '4.0.1',
+): InitialAPI {
   const wallet = {
     rdns: 'io.lace.midnight',
     name: 'Lace',
     icon: 'data:image/svg+xml,<svg/>',
-    apiVersion: '4.0.1',
+    apiVersion,
     connect: connectError
       ? vi.fn().mockRejectedValue(connectError)
       : vi.fn().mockResolvedValue(api),
@@ -108,5 +112,41 @@ describe('useMidnight', () => {
 
     expect(result.current.status).toBe('error');
     expect(result.current.error).toMatch(/not found/i);
+  });
+
+  it('requires the supported Lace API instead of attempting an incompatible connection', async () => {
+    const wallet = installLace(connectedApi(), undefined, '3.2.0');
+    const { result } = renderHook(() => useMidnight());
+
+    await act(async () => {
+      await result.current.connect();
+    });
+
+    expect(wallet.connect).not.toHaveBeenCalled();
+    expect(result.current.status).toBe('error');
+    expect(result.current.error).toMatch(/api 4\.x/i);
+  });
+
+  it('prevents duplicate wallet authorization prompts in the same render', async () => {
+    const api = connectedApi();
+    let finishConnection!: (value: ConnectedAPI) => void;
+    const wallet = installLace(api);
+    vi.mocked(wallet.connect).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finishConnection = resolve;
+        }),
+    );
+    const { result } = renderHook(() => useMidnight());
+
+    await act(async () => {
+      const first = result.current.connect();
+      const duplicate = result.current.connect();
+      expect(wallet.connect).toHaveBeenCalledTimes(1);
+      finishConnection(api);
+      await Promise.all([first, duplicate]);
+    });
+
+    expect(result.current.status).toBe('connected');
   });
 });

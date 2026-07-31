@@ -19,22 +19,35 @@ export interface MidnightWalletState {
 const normalizeNetwork = (networkId: string): string =>
   networkId.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-function selectLace(): InitialAPI | null {
-  const wallets = window.midnight;
-  if (!wallets) return null;
+type LaceDiscovery =
+  | { wallet: InitialAPI; problem: null }
+  | { wallet: null; problem: 'missing' | 'unsupported' };
 
-  const candidates = Object.values(wallets).filter(
+function discoverLace(): LaceDiscovery {
+  const wallets = window.midnight;
+  if (!wallets) return { wallet: null, problem: 'missing' };
+
+  const laceCandidates = Object.entries(wallets)
+    .filter(
+      ([key, wallet]) =>
+        key === 'mnLace' || /lace/i.test(`${wallet?.rdns ?? ''} ${wallet?.name ?? ''}`),
+    )
+    .map(([, wallet]) => wallet)
+    .filter(
     (wallet): wallet is InitialAPI =>
       Boolean(wallet) &&
       typeof wallet.connect === 'function' &&
-      semver.satisfies(wallet.apiVersion, '4.x'),
+      typeof wallet.apiVersion === 'string',
   );
 
-  return (
-    wallets.mnLace ??
-    candidates.find((wallet) => /lace/i.test(`${wallet.rdns} ${wallet.name}`)) ??
-    null
+  const compatible = laceCandidates.find((wallet) =>
+    semver.satisfies(wallet.apiVersion, '4.x'),
   );
+  if (compatible) return { wallet: compatible, problem: null };
+  return {
+    wallet: null,
+    problem: laceCandidates.length > 0 ? 'unsupported' : 'missing',
+  };
 }
 
 function friendlyConnectionError(error: unknown): string {
@@ -45,7 +58,13 @@ function friendlyConnectionError(error: unknown): string {
   if (/network_mismatch|network|preprod/.test(message)) {
     return 'Network mismatch. Switch Lace to Midnight Preprod, then reconnect.';
   }
-  return 'Lace could not authorize this connection. Check the wallet and try again.';
+  if (/lock/.test(message)) {
+    return 'Lace is locked. Unlock the wallet, then try connecting again.';
+  }
+  if (/timeout|timed out|respond/.test(message)) {
+    return 'Lace did not respond. Keep the extension open, then try connecting again.';
+  }
+  return 'Lace could not authorize this connection. Open the wallet, confirm Preprod, and try again.';
 }
 
 export function useMidnight(): MidnightWalletState {
@@ -56,9 +75,11 @@ export function useMidnight(): MidnightWalletState {
   const [networkId, setNetworkId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const requestId = useRef(0);
+  const connectionPending = useRef(false);
 
   const disconnect = useCallback(() => {
     requestId.current += 1;
+    connectionPending.current = false;
     setConnectedApi(null);
     setAddress(null);
     setWalletName(null);
@@ -68,16 +89,22 @@ export function useMidnight(): MidnightWalletState {
   }, []);
 
   const connect = useCallback(async () => {
-    const wallet = selectLace();
+    if (connectionPending.current) return;
+
+    const discovery = discoverLace();
+    const wallet = discovery.wallet;
     if (!wallet) {
       setStatus('error');
       setError(
-        'Lace with Midnight support was not found. Install or enable Lace, then refresh this page.',
+        discovery.problem === 'unsupported'
+          ? 'This dApp requires the Lace Midnight API 4.x. Update Lace, enable Midnight support, then refresh this page.'
+          : 'Lace with Midnight support was not found. Install or enable Lace, then refresh this page.',
       );
       return;
     }
 
     const activeRequest = ++requestId.current;
+    connectionPending.current = true;
     setStatus('connecting');
     setError(null);
 
@@ -113,12 +140,17 @@ export function useMidnight(): MidnightWalletState {
       setNetworkId(null);
       setStatus('error');
       setError(friendlyConnectionError(cause));
+    } finally {
+      if (activeRequest === requestId.current) {
+        connectionPending.current = false;
+      }
     }
   }, []);
 
   useEffect(() => {
     return () => {
       requestId.current += 1;
+      connectionPending.current = false;
     };
   }, []);
 

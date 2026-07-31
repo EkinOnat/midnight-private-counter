@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Compile, test, and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Compact devtools and compiler
+        shell: bash
+        run: |
+          curl --proto '=https' --tlsv1.2 -LsSf \
+            https://github.com/midnightntwrk/compact/releases/download/compact-v0.5.1/compact-installer.sh \
+            | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          compact update 0.31.1
+          compact --version
+          compact compile +0.31.1 --version
+
+      - name: Compile Compact contract
+        run: npm run compile
+
+      - name: Verify generated contract artifacts are current
+        shell: bash
+        run: |
+          git diff --exit-code -- managed/counter
+          untracked="$(git ls-files --others --exclude-standard -- managed/counter)"
+          if [[ -n "$untracked" ]]; then
+            echo "Compact compilation produced untracked managed artifacts:"
+            printf '%s\n' "$untracked"
+            exit 1
+          fi
+
+      - name: Run test suite
+        run: npm test
+
+      - name: Build production frontend
+        run: npm run build
