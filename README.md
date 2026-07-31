@@ -196,7 +196,7 @@ See [PROPOSAL.md](PROPOSAL.md).
 |---|---|
 | Public repository | [github.com/EkinOnat/midnight-private-counter](https://github.com/EkinOnat/midnight-private-counter) |
 | Live frontend | [Midnight Private Counter](https://midnight-private-counter.ekinonat10.chatgpt.site) |
-| Demo video | [Wallet connection and successful circuit call](https://youtu.be/uSjGRCvbhCM) |
+| Demo video | [Level 3 wallet connection and private circuit call](https://youtu.be/N2mgrGWao4Y) |
 | Preprod contract | `516b830d25b61b83abd63488618a8dc45e4aecc1a04da18377e467792bdeed62` |
 | On-chain lookup | Search the address on the [Midnight Preprod Explorer](https://preprod.midnightexplorer.com/) |
 
@@ -261,15 +261,15 @@ vercel.json                         Production build, routing, and asset headers
 
 ## Demo Video
 
-[Watch the Level 2 demo on YouTube](https://youtu.be/uSjGRCvbhCM).
+[Watch the Level 3 demo on YouTube](https://youtu.be/N2mgrGWao4Y).
 
-The recording shows an active Lace connection on the live Preprod frontend, a
-successful `increment()` circuit call, the local proof/submission loading
-state, the public counter advancing from 1 to 2, and the finalized block and
-transaction result. It also demonstrates the privacy boundary: the application
-proves knowledge of a fresh private nonce without displaying or publishing
-that nonce. Explicit disconnect cleanup is implemented in the wallet control
-and covered by the frontend test suite.
+The Level 3 recording shows an active Lace connection on the live Preprod
+frontend, a successful `increment()` circuit call, the local proof/submission
+progress, the public counter advancing by exactly one, and the finalized block
+and transaction result. It also demonstrates the privacy boundary: the
+application proves knowledge of a fresh private nonce without displaying or
+publishing that nonce. Explicit disconnect cleanup is implemented in the
+wallet control and covered by the frontend test suite.
 
 ## Screenshots
 
