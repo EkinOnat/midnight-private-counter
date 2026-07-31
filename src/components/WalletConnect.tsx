@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import type { MidnightWalletState } from '../hooks/useMidnight.js';
 
 interface WalletConnectProps {
@@ -6,16 +7,46 @@ interface WalletConnectProps {
 
 export function WalletConnect({ wallet }: WalletConnectProps) {
   const isConnected = wallet.status === 'connected' && wallet.address;
+  const connectButtonRef = useRef<HTMLButtonElement>(null);
+  const disconnectButtonRef = useRef<HTMLButtonElement>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null);
+  const previousStatus = useRef(wallet.status);
+
+  useEffect(() => {
+    const previous = previousStatus.current;
+    if (previous === 'connecting' && wallet.status === 'connected') {
+      disconnectButtonRef.current?.focus();
+    } else if (wallet.status === 'error') {
+      errorRef.current?.focus();
+    } else if (previous === 'connected' && wallet.status === 'disconnected') {
+      connectButtonRef.current?.focus();
+    }
+    previousStatus.current = wallet.status;
+  }, [wallet.status]);
+
+  const statusLabel = {
+    disconnected: 'Not connected',
+    connecting: 'Waiting for Lace',
+    connected: 'Connected',
+    error: 'Needs attention',
+  }[wallet.status];
 
   return (
-    <section className="wallet-panel" aria-labelledby="wallet-title">
+    <section
+      className="wallet-panel"
+      aria-labelledby="wallet-title"
+      aria-busy={wallet.status === 'connecting'}
+    >
       <div className="section-heading">
         <span className="eyebrow">01 / Wallet</span>
-        <div className={`status-dot status-dot--${wallet.status}`} aria-hidden="true" />
+        <span className="wallet-status" role="status" aria-live="polite">
+          <span className={`status-dot status-dot--${wallet.status}`} aria-hidden="true" />
+          {statusLabel}
+        </span>
       </div>
 
       <h2 id="wallet-title">{isConnected ? 'Lace connected' : 'Connect your wallet'}</h2>
-      <p className="section-copy">
+      <p className="section-copy" id="wallet-description">
         {isConnected
           ? 'Authorization is active for this browser session.'
           : 'Authorize Lace to balance and submit your Counter transaction.'}
@@ -41,7 +72,13 @@ export function WalletConnect({ wallet }: WalletConnectProps) {
               </dd>
             </div>
           </dl>
-          <button className="button button--quiet" type="button" onClick={wallet.disconnect}>
+          <button
+            className="button button--quiet"
+            type="button"
+            onClick={wallet.disconnect}
+            aria-describedby="wallet-description"
+            ref={disconnectButtonRef}
+          >
             Disconnect
           </button>
         </>
@@ -51,6 +88,9 @@ export function WalletConnect({ wallet }: WalletConnectProps) {
           type="button"
           onClick={() => void wallet.connect()}
           disabled={wallet.status === 'connecting'}
+          aria-busy={wallet.status === 'connecting'}
+          aria-describedby="wallet-description"
+          ref={connectButtonRef}
         >
           {wallet.status === 'connecting' ? (
             <>
@@ -64,7 +104,12 @@ export function WalletConnect({ wallet }: WalletConnectProps) {
       )}
 
       {wallet.error && (
-        <p className="inline-message inline-message--error" role="alert">
+        <p
+          className="inline-message inline-message--error async-outcome"
+          role="alert"
+          tabIndex={-1}
+          ref={errorRef}
+        >
           {wallet.error}
         </p>
       )}
