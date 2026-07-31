@@ -1,5 +1,7 @@
 # Midnight Private Counter
 
+[![CI](https://github.com/EkinOnat/midnight-private-counter/actions/workflows/ci.yml/badge.svg)](https://github.com/EkinOnat/midnight-private-counter/actions/workflows/ci.yml)
+
 > A privacy-preserving participation counter built on Midnight.
 
 ## Live Demo
@@ -7,18 +9,186 @@
 [Open the production dApp](https://midnight-private-counter.ekinonat10.chatgpt.site)
 
 The dApp targets Midnight **Preprod** and requires Lace with Midnight support.
-Keep the local proof server running before submitting a circuit call.
+Keep the local proof server running at `http://127.0.0.1:6300` before submitting
+a circuit call.
 
-## Contract Addresses
+## Contract Address
 
-| Network | Address | Status |
-|---|---|---|
-| Preprod | `516b830d25b61b83abd63488618a8dc45e4aecc1a04da18377e467792bdeed62` | Verified |
-| Preview | `6d0a101573fc319dc46889f21caa157b71b7080ba3c5f954498840d04db84952` | Level 1 deployment |
+| Network | Address |
+|---|---|
+| Preprod | `516b830d25b61b83abd63488618a8dc45e4aecc1a04da18377e467792bdeed62` |
 
-The Preprod deployment was completed on July 30, 2026 and independently read
-from the official Preprod indexer. Local deployment metadata and wallet
-material are intentionally excluded from Git.
+## What This Does
+
+Connect Lace, read the public participation count, and submit an increment using
+a private input. For each call, the browser creates a fresh random 32-byte
+nonce. The Compact circuit derives a public one-way commitment from that nonce
+and advances the public counter by exactly one.
+
+The circuit itself returns no value. After the transaction finalizes, the dApp
+shows the public transaction ID and block height and reads the updated public
+count from the Preprod indexer.
+
+## Privacy Model
+
+- **PUBLIC:** `count`, `lastCommitment`, the contract address, the fact that an
+  increment occurred, and ordinary protocol transaction metadata.
+- **PRIVATE:** the raw 32-byte nonce used as the `privateNonce()` witness. It is
+  handled only in the caller's browser and local proving flow and is not written
+  to the Compact ledger.
+- **PROVED without revealing:** a valid circuit execution received a 32-byte
+  witness, derived the disclosed commitment from it, and performed the fixed
+  one-step counter transition.
+
+The assignment to public `lastCommitment` is the visibility boundary.
+`disclose()` acknowledges to the Compact compiler that the derived hash—not the
+raw witness—is intentionally allowed to cross it.
+
+## Privacy Claim
+
+An on-chain observer can see the counter's history, each published
+`lastCommitment`, and transaction data needed by the protocol. The observer can
+therefore see that an increment happened and how the public count changed. The
+raw nonce is absent from the public ledger and from the circuit's empty return
+value, so it is not directly available to that observer.
+
+The commitment is public and is not encryption. A predictable or low-entropy
+nonce could be guessed and checked against its commitment; the application
+mitigates that risk by generating a fresh 256-bit value with
+`crypto.getRandomValues()` for every call. Privacy does not hide the existence
+of participation, the public count, the commitment, or transaction metadata.
+
+In the browser implementation, the nonce is placed in a one-call in-memory
+private-state provider, the proof endpoint is restricted to loopback, and the
+provider entry is removed and the local byte array is overwritten in a
+`finally` block. The app does not intentionally put the nonce in UI state,
+logs, URLs, or browser storage. This is an application boundary, not protection
+against a compromised browser, wallet, device, or local proof server.
+
+## Tech Stack
+
+- Midnight Preprod
+- Compact devtools 0.5.1, Compact compiler 0.31.1, and Compact runtime 0.16.0
+- Midnight.js 4.1.1 and DApp Connector API 4.0.1
+- Wallet SDK 1.2.0 and proof server 8.1.0
+- React 19, TypeScript, Vite, and Vitest
+- Node.js 22
+- Docker; WSL2 is recommended for Windows development
+
+The pinned Midnight versions follow the
+[official support matrix](https://docs.midnight.network/relnotes/support-matrix).
+
+## Prerequisites
+
+- Git
+- Node.js 22 and npm
+- Docker Desktop or Docker Engine with Compose
+- Compact devtools 0.5.1 with Compact compiler 0.31.1
+- Lace with Midnight support, set to Preprod, with a funded Preprod wallet
+- A Chromium-based browser
+- WSL2 with Ubuntu when developing on Windows
+
+See the
+[Midnight installation guide](https://docs.midnight.network/getting-started/installation)
+and
+[browser dApp tutorial](https://docs.midnight.network/tutorials/leaderboard/browser-dapp)
+for the supported environment.
+
+## Setup & Run Locally
+
+Midnight development is supported on Linux and macOS. On Windows, install the
+Compact toolchain inside the default WSL2 distribution. The repository's
+compile wrapper invokes that WSL toolchain automatically, preventing native
+PowerShell from resolving `compact` to the unrelated Windows filesystem
+utility.
+
+If PowerShell blocks the `npm.ps1` launcher under its execution policy, use
+the equivalent `npm.cmd` form for every npm command (for example,
+`npm.cmd run compile`).
+
+1. Clone the repository and enter it:
+
+   ```bash
+   git clone https://github.com/EkinOnat/midnight-private-counter.git
+   cd midnight-private-counter
+   ```
+
+2. Install the pinned Compact devtools and compiler. Windows users should run
+   this step inside WSL2:
+
+   ```bash
+   curl --proto '=https' --tlsv1.2 -LsSf \
+     https://github.com/midnightntwrk/compact/releases/download/compact-v0.5.1/compact-installer.sh \
+     | sh
+   export PATH="$HOME/.local/bin:$PATH"
+   compact update 0.31.1
+   compact --version
+   compact compile +0.31.1 --version
+   ```
+
+3. Install the locked dependencies, configure the public Preprod values, and
+   compile the contract. On Windows, these commands can run from PowerShell;
+   `npm run compile` delegates only the compiler process to WSL2:
+
+   ```bash
+   npm ci
+   cp .env.example .env.local
+   npm run compile
+   ```
+
+4. Start and verify the local proof server:
+
+   ```bash
+   docker compose up -d
+   docker compose ps
+   ```
+
+5. Start the frontend:
+
+   ```bash
+   npm run dev
+   ```
+
+Open the local URL printed by Vite, connect Lace on **Preprod**, and select
+**Increment counter**. Keep the proof server running while the call is proved
+and submitted. The values in `.env.local` are public configuration; never add
+wallet seeds, private keys, or witness data.
+
+## Run Tests
+
+Run the complete contract and frontend suite:
+
+```bash
+npm test
+```
+
+Run the remaining local quality checks:
+
+```bash
+npm run typecheck
+npm run build
+```
+
+The suite covers contract circuit behavior, sequential public state
+transitions, the private witness boundary, wallet connection states,
+disconnect cleanup, pending/success UI states, and static guards against
+persistence or display of private call data.
+
+## CI/CD
+
+`.github/workflows/ci.yml` runs on every pull request and every push to `main`.
+It uses Node.js 22, restores npm's download cache, installs dependencies with
+`npm ci`, installs Compact devtools 0.5.1 and compiler 0.31.1, recompiles the
+contract, rejects stale generated artifacts, runs the complete test suite, and
+performs the production build. `npm run build` includes TypeScript checking.
+The workflow does not deploy the contract or frontend.
+
+The live badge above can turn green only after this workflow is pushed to
+GitHub and completes successfully.
+
+## Product Proposal
+
+See [PROPOSAL.md](PROPOSAL.md).
 
 ## Submission Evidence
 
@@ -28,112 +198,14 @@ material are intentionally excluded from Git.
 | Live frontend | [Midnight Private Counter](https://midnight-private-counter.ekinonat10.chatgpt.site) |
 | Demo video | [Wallet connection and successful circuit call](https://youtu.be/uSjGRCvbhCM) |
 | Preprod contract | `516b830d25b61b83abd63488618a8dc45e4aecc1a04da18377e467792bdeed62` |
-| On-chain verification | Verified through the official Preprod indexer; the address can also be searched on the [Midnight Preprod Explorer](https://preprod.midnightexplorer.com/) |
+| On-chain lookup | Search the address on the [Midnight Preprod Explorer](https://preprod.midnightexplorer.com/) |
 
-## What This Does
-
-Connect Lace, review the current public participation count, and submit one
-private increment. For every call, the browser generates a fresh random
-32-byte nonce. Midnight proves that the contract received a valid private
-input, derives a one-way commitment from it, and advances the public counter
-by exactly one.
-
-The raw nonce is never published. Observers see the updated count, the latest
-commitment, and ordinary transaction metadata—not the private value that
-produced the proof.
-
-## Privacy Model
-
-- **PUBLIC (on-chain):** `count`, `lastCommitment`, the contract address, and
-  transaction metadata.
-- **PRIVATE (local witness):** the fresh 32-byte nonce supplied through
-  `privateNonce()`.
-- **PROVEN WITHOUT REVEALING:** the circuit received a valid witness, the
-  disclosed commitment was derived from it, and the fixed one-step counter
-  transition is valid.
-
-The `disclose()` in `contracts/counter.compact` deliberately crosses the
-privacy boundary only for the one-way hash commitment. It does not disclose
-the witness.
-
-## Privacy Claim
-
-The frontend creates the nonce with `crypto.getRandomValues()` immediately
-before the call. It keeps the value in an ephemeral in-memory private-state
-provider, never places it in browser storage, logs, URLs, or UI state, removes
-it after the call, and overwrites the local byte array in a `finally` block.
-Only the public transaction ID, block height, count, and commitment can leave
-the circuit boundary.
-
-## Tech Stack
-
-- Midnight Preprod and Preview networks
-- Compact developer tools 0.5.1
-- Compact compiler 0.31.1 and runtime 0.16.0
-- Midnight.js 4.1.1 and DApp Connector API 4.0.1
-- Wallet SDK 1.2.0 and proof server 8.1.0
-- React 19, TypeScript, Vite, and Vitest
-- Node.js 22
-- Docker and WSL2 on Windows
-
-The pinned versions follow the
-[official Midnight support matrix](https://docs.midnight.network/relnotes/support-matrix).
-
-## Prerequisites
-
-- Git
-- Node.js 22 and npm
-- Docker Desktop or Docker Engine with Compose
-- Compact developer tools 0.5.1 and compiler 0.31.1
-- WSL2 with Ubuntu on Windows
-- Lace with Midnight support and a funded Preprod wallet
-- A local proof server available at `http://127.0.0.1:6300`
-
-See the
-[Midnight installation guide](https://docs.midnight.network/getting-started/installation)
-and
-[browser dApp tutorial](https://docs.midnight.network/tutorials/leaderboard/browser-dapp)
-for the supported setup.
-
-## Run Locally
-
-Clone and install:
-
-```bash
-git clone https://github.com/EkinOnat/midnight-private-counter.git
-cd midnight-private-counter
-npm install
-```
-
-Compile the Compact contract. On Linux or inside WSL:
-
-```bash
-npm run compile
-```
-
-From Windows PowerShell, compile through WSL:
-
-```powershell
-wsl -- bash -lc "cd /mnt/c/path/to/midnight-private-counter && npm run compile"
-```
-
-Start the proof server, run all contract and frontend tests, then start Vite:
-
-```bash
-docker compose up -d
-docker compose ps
-npm test
-npm run typecheck
-npm run dev
-```
-
-Open the local URL printed by Vite, connect Lace on **Preprod**, and select
-**Increment counter**. The proof server must remain running while a
-call is being proved.
+The Preprod deployment was completed on July 30, 2026. Local deployment
+metadata and wallet material are intentionally excluded from Git.
 
 ## Deploy the Contract
 
-Select a network and deploy:
+Select Preprod and deploy:
 
 ```bash
 npm run network preprod
@@ -151,9 +223,9 @@ Never commit `.midnight-state.json`, `.midnight-wallet-state/`,
 ## Deploy the Frontend
 
 The production contract address and network are public configuration in
-`.env.production`; there are no wallet secrets in the frontend.
+`.env.production`; there are no wallet secrets in the frontend bundle.
 
-Exact Vercel CLI commands:
+The included `vercel.json` supports this Vercel CLI flow:
 
 ```bash
 npm install -g vercel
@@ -161,26 +233,8 @@ vercel login
 vercel --prod
 ```
 
-`vercel.json` builds with `npm run build`, publishes `dist`, applies the SPA
-fallback, and serves the proving assets with long-lived immutable cache
-headers.
-
-## Tests
-
-```bash
-npm test
-npm run typecheck
-npm run build
-```
-
-The suite covers:
-
-- contract behavior and sequential public state transitions;
-- absence of the raw private nonce from public ledger state;
-- successful, rejected, unavailable, and wrong-network wallet connections;
-- disconnect cleanup and disabled/loading/success circuit-call UI states;
-- static privacy guards against persistence, logging, URL leakage, or retaining
-  complete private call results.
+It builds with `npm run build`, publishes `dist`, applies the SPA fallback, and
+serves the proving assets with long-lived immutable cache headers.
 
 ## Project Structure
 
@@ -188,19 +242,21 @@ The suite covers:
 contracts/counter.compact           Compact contract source
 managed/counter/                    Generated contract, circuits, and keys
 public/                             Web manifest, social card, copied ZK assets
+scripts/compile-contract.mjs        Pins Compact 0.31.1 and uses WSL on Windows
 scripts/copy-zk-assets.mjs          Copies generated proving assets for Vite
 src/components/                     Wallet and circuit-call UI
 src/hooks/useMidnight.ts            Lace discovery and connection lifecycle
 src/lib/counter-client.ts           Midnight providers and contract interaction
 src/lib/ephemeral-private-state.ts  One-call in-memory witness state
-src/deploy.ts                       Preview/Preprod deployment entry point
+src/deploy.ts                       Preprod deployment entry point
 src/network.ts                      Network selection and local deployment record
 src/wallet.ts                       CLI wallet/provider setup
 src/witnesses.ts                    Private Compact witness implementation
 tests/counter.test.ts               Contract privacy and state tests
 tests/frontend/                     Wallet, UI, and privacy-boundary tests
+.github/workflows/ci.yml            Compile, test, and production-build workflow
+PROPOSAL.md                         Level 3 product proposal template
 vercel.json                         Production build, routing, and asset headers
-.github/workflows/                  Reserved for Level 3 CI/CD
 ```
 
 ## Demo Video
@@ -239,6 +295,7 @@ I want to build a privacy-preserving participation counter for events,
 communities, and online campaigns. Participants submit a private nonce that is
 never published on-chain. The contract increments a public participation count
 and publishes only a one-way commitment derived from the private input. Level 1
-established the contract and public/private boundary. Level 2 adds a polished
+established the contract and public/private boundary. Level 2 added a polished
 browser experience, Lace connectivity, ephemeral private state, local proof
-generation, and a verified Preprod deployment.
+generation, and a verified Preprod deployment. Level 3 adds reproducible CI and
+the product-proposal framework.
