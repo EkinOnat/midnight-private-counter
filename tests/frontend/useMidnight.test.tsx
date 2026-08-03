@@ -6,21 +6,21 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ConnectedAPI, InitialAPI } from '@midnight-ntwrk/dapp-connector-api';
 import { useMidnight } from '../../src/hooks/useMidnight.js';
 
-function connectedApi(networkId = 'preprod'): ConnectedAPI {
+function connectedApi(networkId = 'preview'): ConnectedAPI {
   return {
     getConnectionStatus: vi.fn().mockResolvedValue({
       status: 'connected',
       networkId,
     }),
     getConfiguration: vi.fn().mockResolvedValue({
-      indexerUri: 'https://indexer.preprod.midnight.network/api/v4/graphql',
-      indexerWsUri: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
+      indexerUri: 'https://indexer.preview.midnight.network/api/v4/graphql',
+      indexerWsUri: 'wss://indexer.preview.midnight.network/api/v4/graphql/ws',
       proverServerUri: 'http://localhost:6300',
-      substrateNodeUri: 'wss://rpc.preprod.midnight.network',
+      substrateNodeUri: 'wss://rpc.preview.midnight.network',
       networkId,
     }),
     getUnshieldedAddress: vi.fn().mockResolvedValue({
-      unshieldedAddress: 'mn_addr_preprod1testaddress',
+      unshieldedAddress: 'mn_addr_preview1testaddress',
     }),
   } as unknown as ConnectedAPI;
 }
@@ -55,7 +55,7 @@ afterEach(() => {
 });
 
 describe('useMidnight', () => {
-  it('connects Lace to Preprod and clears all application state on disconnect', async () => {
+  it('connects Lace to Preview and clears all application state on disconnect', async () => {
     const api = connectedApi();
     const wallet = installLace(api);
     const { result } = renderHook(() => useMidnight());
@@ -64,10 +64,10 @@ describe('useMidnight', () => {
       await result.current.connect();
     });
 
-    expect(wallet.connect).toHaveBeenCalledWith('preprod');
+    expect(wallet.connect).toHaveBeenCalledWith('preview');
     expect(result.current.status).toBe('connected');
-    expect(result.current.address).toBe('mn_addr_preprod1testaddress');
-    expect(result.current.networkId).toBe('preprod');
+    expect(result.current.address).toBe('mn_addr_preview1testaddress');
+    expect(result.current.networkId).toBe('preview');
 
     act(() => result.current.disconnect());
     expect(result.current.status).toBe('disconnected');
@@ -77,7 +77,7 @@ describe('useMidnight', () => {
   });
 
   it('rejects a wallet connected to the wrong network', async () => {
-    installLace(connectedApi('preview'));
+    installLace(connectedApi('preprod'));
     const { result } = renderHook(() => useMidnight());
 
     await act(async () => {

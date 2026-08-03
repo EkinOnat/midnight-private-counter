@@ -11,7 +11,7 @@ workplace teams can publish a survey and obtain a publicly verifiable
 participation total without asking participants to publish the private input
 used for their submission.
 
-The current Level 3 dApp implements that foundation end to end on Preprod: a
+The current Level 3 dApp implements that foundation end to end on Preview: a
 participant connects Lace, the browser generates a fresh private 32-byte input,
 the Compact circuit proves the expected state transition, and the public
 participation counter increases by one. Only a one-way commitment is published.
@@ -63,7 +63,7 @@ be verified without revealing participant identity.
 
 ## Mainnet Feasibility
 
-Yes, if the product remains deliberately narrow. The deployed Preprod contract,
+Yes, if the product remains deliberately narrow. The deployed Preview contract,
 Lace integration, local proof flow, deterministic contract tests, frontend
 tests, and CI pipeline already demonstrate the core execution path. Reaching a
 credible Mainnet candidate by Level 6 is realistic with the following scoped

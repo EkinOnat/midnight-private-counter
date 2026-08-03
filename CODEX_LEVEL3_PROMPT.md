@@ -1,5 +1,9 @@
 # Codex Prompt - Midnight Builder Challenge Level 3
 
+> Historical record: this is the prompt used for the approved July submission.
+> The live project migrated from Preprod to Preview on August 4, 2026; current
+> deployment details are maintained in `README.md` and `.env.production`.
+
 You are helping me complete Level 3 of the Midnight Builder Challenge on Rise In.
 
 Work directly in this existing Level 2 repository:

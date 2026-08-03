@@ -85,7 +85,7 @@ describe('CircuitCall', () => {
 
     rerender(<CircuitCall connectedApi={null} />);
     expect(screen.queryByText('public-transaction-id')).not.toBeInTheDocument();
-    expect(screen.getByText(/connect lace on preprod/i)).toBeInTheDocument();
+    expect(screen.getByText(/connect lace on preview/i)).toBeInTheDocument();
   });
 
   it('reports each operation phase and blocks duplicate clicks before React can rerender', async () => {
@@ -112,7 +112,7 @@ describe('CircuitCall', () => {
     expect(
       screen.getByRole('button', { name: /submitting transaction/i }),
     ).toBeDisabled();
-    expect(screen.getByText(/submitting the proved transaction to midnight preprod/i))
+    expect(screen.getByText(/submitting the proved transaction to midnight preview/i))
       .toBeInTheDocument();
 
     await act(async () => {
@@ -223,7 +223,7 @@ describe('CircuitCall', () => {
     render(<CircuitCall connectedApi={connectedApi} />);
 
     const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent(/could not read the public counter from the preprod indexer/i);
+    expect(alert).toHaveTextContent(/could not read the public counter from the preview indexer/i);
     expect(alert).not.toHaveTextContent(privateDetail);
 
     await userEvent.click(
@@ -246,7 +246,7 @@ describe('CircuitCall', () => {
 
     expect(await screen.findByText('—')).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent(
-      /verified contract has no readable public state on preprod/i,
+      /verified contract has no readable public state on preview/i,
     );
 
     await userEvent.click(

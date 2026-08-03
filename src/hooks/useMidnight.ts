@@ -55,8 +55,8 @@ function friendlyConnectionError(error: unknown): string {
   if (/reject|declin|denied|cancel/.test(message)) {
     return 'Connection was cancelled in Lace. You can try again when ready.';
   }
-  if (/network_mismatch|network|preprod/.test(message)) {
-    return 'Network mismatch. Switch Lace to Midnight Preprod, then reconnect.';
+  if (/network_mismatch|network|preview/.test(message)) {
+    return 'Network mismatch. Switch Lace to Midnight Preview, then reconnect.';
   }
   if (/lock/.test(message)) {
     return 'Lace is locked. Unlock the wallet, then try connecting again.';
@@ -64,7 +64,7 @@ function friendlyConnectionError(error: unknown): string {
   if (/timeout|timed out|respond/.test(message)) {
     return 'Lace did not respond. Keep the extension open, then try connecting again.';
   }
-  return 'Lace could not authorize this connection. Open the wallet, confirm Preprod, and try again.';
+  return 'Lace could not authorize this connection. Open the wallet, confirm Preview, and try again.';
 }
 
 export function useMidnight(): MidnightWalletState {

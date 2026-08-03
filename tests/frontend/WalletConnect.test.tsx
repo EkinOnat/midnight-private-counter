@@ -43,9 +43,9 @@ describe('WalletConnect', () => {
 
   it('calls disconnect from the connected state', async () => {
     const wallet = walletState('connected', {
-      address: 'mn_addr_preprod1public',
+      address: 'mn_addr_preview1public',
       walletName: 'Lace',
-      networkId: 'preprod',
+      networkId: 'preview',
     });
 
     render(<WalletConnect wallet={wallet} />);
@@ -82,9 +82,9 @@ describe('WalletConnect', () => {
     rerender(
       <WalletConnect
         wallet={walletState('connected', {
-          address: 'mn_addr_preprod1public',
+          address: 'mn_addr_preview1public',
           walletName: 'Lace',
-          networkId: 'preprod',
+          networkId: 'preview',
         })}
       />,
     );
@@ -102,7 +102,7 @@ describe('WalletConnect', () => {
     rerender(
       <WalletConnect
         wallet={walletState('error', {
-          error: 'Network mismatch. Switch Lace to Midnight Preprod, then reconnect.',
+          error: 'Network mismatch. Switch Lace to Midnight Preview, then reconnect.',
         })}
       />,
     );
