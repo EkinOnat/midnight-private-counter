@@ -58,7 +58,7 @@ export function WalletConnect({ wallet }: WalletConnectProps) {
             <div>
               <dt>Network</dt>
               <dd>
-                <span className="network-pill">Preprod</span>
+                <span className="network-pill">Preview</span>
               </dd>
             </div>
             <div>

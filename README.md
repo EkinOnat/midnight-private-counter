@@ -8,7 +8,7 @@
 
 [Open the production dApp](https://midnight-private-counter.ekinonat10.chatgpt.site)
 
-The dApp targets Midnight **Preprod** and requires Lace with Midnight support.
+The dApp targets Midnight **Preview** and requires Lace with Midnight support.
 Keep the local proof server running at `http://127.0.0.1:6300` before submitting
 a circuit call.
 
@@ -16,7 +16,11 @@ a circuit call.
 
 | Network | Address |
 |---|---|
-| Preprod | `516b830d25b61b83abd63488618a8dc45e4aecc1a04da18377e467792bdeed62` |
+| Preview (active) | `6d0a101573fc319dc46889f21caa157b71b7080ba3c5f954498840d04db84952` |
+| Preprod (July submission; historical) | `516b830d25b61b83abd63488618a8dc45e4aecc1a04da18377e467792bdeed62` |
+
+The Preview contract was deployed on July 30, 2026 and reverified against the
+public Preview indexer on August 4, 2026 as part of the Rise In migration.
 
 ## What This Does
 
@@ -27,7 +31,7 @@ and advances the public counter by exactly one.
 
 The circuit itself returns no value. After the transaction finalizes, the dApp
 shows the public transaction ID and block height and reads the updated public
-count from the Preprod indexer.
+count from the Preview indexer.
 
 ## Privacy Model
 
@@ -67,7 +71,7 @@ against a compromised browser, wallet, device, or local proof server.
 
 ## Tech Stack
 
-- Midnight Preprod
+- Midnight Preview
 - Compact devtools 0.5.1, Compact compiler 0.31.1, and Compact runtime 0.16.0
 - Midnight.js 4.1.1 and DApp Connector API 4.0.1
 - Wallet SDK 1.2.0 and proof server 8.1.0
@@ -84,7 +88,7 @@ The pinned Midnight versions follow the
 - Node.js 22 and npm
 - Docker Desktop or Docker Engine with Compose
 - Compact devtools 0.5.1 with Compact compiler 0.31.1
-- Lace with Midnight support, set to Preprod, with a funded Preprod wallet
+- Lace with Midnight support, set to Preview, with a funded Preview wallet
 - A Chromium-based browser
 - WSL2 with Ubuntu when developing on Windows
 
@@ -126,7 +130,7 @@ the equivalent `npm.cmd` form for every npm command (for example,
    compact compile +0.31.1 --version
    ```
 
-3. Install the locked dependencies, configure the public Preprod values, and
+3. Install the locked dependencies, configure the public Preview values, and
    compile the contract. On Windows, these commands can run from PowerShell;
    `npm run compile` delegates only the compiler process to WSL2:
 
@@ -149,7 +153,7 @@ the equivalent `npm.cmd` form for every npm command (for example,
    npm run dev
    ```
 
-Open the local URL printed by Vite, connect Lace on **Preprod**, and select
+Open the local URL printed by Vite, connect Lace on **Preview**, and select
 **Increment counter**. Keep the proof server running while the call is proved
 and submitted. The values in `.env.local` are public configuration; never add
 wallet seeds, private keys, or witness data.
@@ -197,25 +201,29 @@ See [PROPOSAL.md](PROPOSAL.md).
 | Public repository | [github.com/EkinOnat/midnight-private-counter](https://github.com/EkinOnat/midnight-private-counter) |
 | Live frontend | [Midnight Private Counter](https://midnight-private-counter.ekinonat10.chatgpt.site) |
 | Demo video | [Level 3 wallet connection and private circuit call](https://youtu.be/N2mgrGWao4Y) |
-| Preprod contract | `516b830d25b61b83abd63488618a8dc45e4aecc1a04da18377e467792bdeed62` |
-| On-chain lookup | Search the address on the [Midnight Preprod Explorer](https://preprod.midnightexplorer.com/) |
+| Preview contract (active) | `6d0a101573fc319dc46889f21caa157b71b7080ba3c5f954498840d04db84952` |
+| Preview faucet | [faucet.preview.midnight.network](https://faucet.preview.midnight.network/) |
+| July-approved Preprod contract (historical) | `516b830d25b61b83abd63488618a8dc45e4aecc1a04da18377e467792bdeed62` |
 
-The Preprod deployment was completed on July 30, 2026. Local deployment
-metadata and wallet material are intentionally excluded from Git.
+The Preview and Preprod deployments were completed on July 30, 2026. The
+Preview contract was confirmed live through the Preview indexer on August 4,
+2026 and is now the dApp's active deployment. The Preprod address remains here
+only as evidence for the approved July submission. Local deployment metadata
+and wallet material are intentionally excluded from Git.
 
 ## Deploy the Contract
 
-Select Preprod and deploy:
+Select Preview and deploy:
 
 ```bash
-npm run network preprod
-npm run deploy -- --network preprod
+npm run network preview
+npm run deploy -- --network preview
 ```
 
 For a new wallet, the script prints the wallet address and waits for test
-tNight. Fund that exact address with the appropriate faucet, then leave the
-process running while it syncs, registers NIGHT for DUST generation, proves,
-and submits the deployment.
+tNight from the [Preview faucet](https://faucet.preview.midnight.network/).
+Fund that exact address, then leave the process running while it syncs,
+registers NIGHT for DUST generation, proves, and submits the deployment.
 
 Never commit `.midnight-state.json`, `.midnight-wallet-state/`,
 `midnight-level-db/`, or any wallet seed.
@@ -248,7 +256,7 @@ src/components/                     Wallet and circuit-call UI
 src/hooks/useMidnight.ts            Lace discovery and connection lifecycle
 src/lib/counter-client.ts           Midnight providers and contract interaction
 src/lib/ephemeral-private-state.ts  One-call in-memory witness state
-src/deploy.ts                       Preprod deployment entry point
+src/deploy.ts                       Preview deployment entry point
 src/network.ts                      Network selection and local deployment record
 src/wallet.ts                       CLI wallet/provider setup
 src/witnesses.ts                    Private Compact witness implementation
@@ -263,7 +271,7 @@ vercel.json                         Production build, routing, and asset headers
 
 [Watch the Level 3 demo on YouTube](https://youtu.be/N2mgrGWao4Y).
 
-The Level 3 recording shows an active Lace connection on the live Preprod
+The July Level 3 recording shows an active Lace connection on the then-live Preprod
 frontend, a successful `increment()` circuit call, the local proof/submission
 progress, the public counter advancing by exactly one, and the finalized block
 and transaction result. It also demonstrates the privacy boundary: the
@@ -301,5 +309,6 @@ never published on-chain. The contract increments a public participation count
 and publishes only a one-way commitment derived from the private input. Level 1
 established the contract and public/private boundary. Level 2 added a polished
 browser experience, Lace connectivity, ephemeral private state, local proof
-generation, and a verified Preprod deployment. Level 3 adds reproducible CI and
-the product-proposal framework.
+generation, and a verified deployment. The project now targets Preview while
+retaining the approved July Preprod address as historical evidence. Level 3
+adds reproducible CI and the product-proposal framework.

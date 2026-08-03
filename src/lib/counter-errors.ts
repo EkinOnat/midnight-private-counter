@@ -18,7 +18,7 @@ const COUNTER_ERROR_COPY: Record<CounterClientErrorCode, string> = {
   wallet_connection_lost:
     'Lace stopped responding. Reconnect the wallet, then try again.',
   network_mismatch:
-    'Lace is no longer on Midnight Preprod. Disconnect, switch networks, and reconnect.',
+    'Lace is no longer on Midnight Preview. Disconnect, switch networks, and reconnect.',
   local_proof_server_required:
     'This dApp proves locally only. Start proof server 8.1.0 at http://127.0.0.1:6300, then retry.',
   proof_server_unreachable:
@@ -30,15 +30,15 @@ const COUNTER_ERROR_COPY: Record<CounterClientErrorCode, string> = {
   wallet_balance_failed:
     'Lace could not prepare the transaction. Unlock Lace and confirm the wallet has generated tDUST, then retry.',
   transaction_submission_failed:
-    'Lace could not submit the proved transaction. Confirm Lace is connected to Preprod, then retry.',
+    'Lace could not submit the proved transaction. Confirm Lace is connected to Preview, then retry.',
   transaction_confirmation_failed:
     'The transaction was submitted, but finalization could not be confirmed. Do not resubmit. Check Lace activity; once Lace shows finalized or discarded, reload this dApp.',
   contract_not_found:
-    'The Counter contract was not found at the verified Preprod address. Check the network and reload the page.',
+    'The Counter contract was not found at the verified Preview address. Check the network and reload the page.',
   contract_read_failed:
-    'The verified contract could not be read from the Preprod indexer. Check your connection and retry.',
+    'The verified contract could not be read from the Preview indexer. Check your connection and retry.',
   contract_initialization_failed:
-    'The Counter contract could not be prepared. Reload the dApp; if this continues, verify Preprod and the local proof assets.',
+    'The Counter contract could not be prepared. Reload the dApp; if this continues, verify Preview and the local proof assets.',
   zk_assets_unavailable:
     'The local proof assets could not be loaded. Reload the dApp and confirm the production build includes the Counter ZK assets.',
   private_input_generation_failed:
@@ -101,7 +101,7 @@ export function friendlyCounterClientError(cause: unknown): string {
     return COUNTER_ERROR_COPY.wallet_balance_failed;
   }
   if (/submit|transaction|mempool/.test(message)) {
-    return 'The proved transaction could not be submitted. Confirm Lace is connected to Preprod, then retry.';
+    return 'The proved transaction could not be submitted. Confirm Lace is connected to Preview, then retry.';
   }
-  return 'The private call could not be completed. Check Lace, Preprod, and the local proof server, then retry.';
+  return 'The private call could not be completed. Check Lace, Preview, and the local proof server, then retry.';
 }

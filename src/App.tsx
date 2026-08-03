@@ -15,7 +15,7 @@ export default function App() {
           </a>
           <span className="network-pill">
             <span className="network-pulse" aria-hidden="true" />
-            Preprod
+            Preview
           </span>
         </div>
 

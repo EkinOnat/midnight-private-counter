@@ -37,19 +37,19 @@ const PHASE_BUTTON_LABEL: Record<IncrementPhase, string> = {
 };
 
 const PHASE_STATUS_COPY: Record<IncrementPhase, string> = {
-  preparing: 'Checking Lace, the Preprod network, and the verified contract.',
+  preparing: 'Checking Lace, the Preview network, and the verified contract.',
   proving: 'Generating a zero-knowledge proof with your local proof server. Keep this tab open.',
   balancing: 'Proof complete. Approve transaction preparation in Lace.',
-  submitting: 'Lace is submitting the proved transaction to Midnight Preprod.',
+  submitting: 'Lace is submitting the proved transaction to Midnight Preview.',
   confirming: 'Submitted. Waiting for on-chain finalization.',
-  refreshing: 'Finalized. Reading the updated public counter from Preprod.',
+  refreshing: 'Finalized. Reading the updated public counter from Preview.',
 };
 
 const readErrorCopy =
-  'Could not read the public counter from the Preprod indexer. Check your connection, then retry.';
+  'Could not read the public counter from the Preview indexer. Check your connection, then retry.';
 
 const missingStateCopy =
-  'The verified contract has no readable public state on Preprod. Check the network, then retry.';
+  'The verified contract has no readable public state on Preview. Check the network, then retry.';
 
 const finalizedReadErrorCopy =
   'Transaction finalized, but the latest public count could not be read. Refresh the public count before starting another increment.';
@@ -260,7 +260,7 @@ export function CircuitCall({ connectedApi }: CircuitCallProps) {
 
       {!connectedApi && (
         <p className="inline-message" role="status">
-          Connect Lace on Preprod to enable the circuit.
+          Connect Lace on Preview to enable the circuit.
         </p>
       )}
 
@@ -319,7 +319,7 @@ export function CircuitCall({ connectedApi }: CircuitCallProps) {
       {readStatus === 'loading' && (
         <p className="inline-message read-status" role="status" aria-live="polite">
           <span className="spinner spinner--light" aria-hidden="true" />
-          Reading public contract state from Preprod
+          Reading public contract state from Preview
         </p>
       )}
 
